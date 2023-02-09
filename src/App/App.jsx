@@ -4,13 +4,16 @@ import { Card } from "antd";
 import Meta from "antd/es/card/Meta";
 import { Wallet } from "./components/Wallet";
 import axios from "axios";
+import { Spinner } from "./components/shared/Spinner";
 const BACKEND = "https://chainlink-workshop-node.onrender.com";
 
 function App() {
   const [user, setUser] = React.useState("Connect wallet");
   const [nfts, setNfts] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
 
   const onSafeMint = async () => {
+    setLoading(true);
     const idRamdom = Math.floor(Math.random() * 151) + 1;
 
     const response = await axios.get(`${BACKEND}/getPokemon`, {
@@ -19,6 +22,7 @@ function App() {
     const responseJSON = response.data;
 
     setNfts([...nfts, responseJSON]);
+    setLoading(false);
   };
 
   return (
@@ -32,19 +36,25 @@ function App() {
           <button className="app__get" onClick={onSafeMint}>
             safeMint
           </button>
-          <div className="app-list">
-            {nfts.map((nft, index) => {
-              return (
-                <Card
-                  key={index}
-                  title={nft.name}
-                  cover={<img src={nft.image} alt={"img"} />}
-                >
-                  <Meta description={nft.types}></Meta>
-                </Card>
-              );
-            })}
-          </div>
+          <>
+            {loading ? (
+              <Spinner />
+            ) : (
+              <div className="app-list">
+                {nfts.map((nft, index) => {
+                  return (
+                    <Card
+                      key={index}
+                      title={nft.name}
+                      cover={<img src={nft.image} alt={"img"} />}
+                    >
+                      <Meta description={nft.types}></Meta>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </>
         </div>
       )}
     </React.Fragment>
