@@ -14,7 +14,7 @@ export function Wallet(props) {
       return;
     }
 
-    if (user === "Connect wallet") {
+    if (user.address === "Connect wallet") {
       setLoading(true);
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -24,16 +24,16 @@ export function Wallet(props) {
 
       const signer = provider.getSigner();
       const chainId = await signer.getChainId();
-      if (chainId !== 80001) {
-        window.alert("Change your network to Mumbai testnet!");
+      if (chainId !== 5) {
+        window.alert("Change your network to Goerli testnet!");
         setLoading(false);
         return;
       }
       setNfts([]);
-      setUser(account);
+      setUser({ address: account, provider, signer });
       setLoading(false);
     } else {
-      setUser("Connect wallet");
+      setUser({ address: "Connect wallet", provider: {}, signer: {} });
       setLoading(false);
     }
   };
@@ -42,8 +42,8 @@ export function Wallet(props) {
     <button className="button-wallet" onClick={connectWallet}>
       {loading
         ? "loading..."
-        : user !== "Connect wallet"
-        ? "..." + String(user).slice(36)
+        : user.address !== "Connect wallet"
+        ? "..." + String(user.address).slice(36)
         : "Connect wallet"}
     </button>
   );

@@ -3,31 +3,46 @@ import React from "react";
 import { Card } from "antd";
 import Meta from "antd/es/card/Meta";
 import { Wallet } from "./components/Wallet";
-import axios from "axios";
 import { Spinner } from "./components/shared/Spinner";
 import { ethers } from "ethers";
-const BACKEND = "https://chainlink-workshop-node.onrender.com";
+import { Buffer } from "buffer";
+import pokemonsNFTsContract from "../assets/PokemonsNFTsContract.json";
 
 function App() {
-  const [user, setUser] = React.useState("Connect wallet");
+  const initialState = { address: "Connect wallet", provider: {}, signer: {} };
+  const [user, setUser] = React.useState(initialState);
   const [nfts, setNfts] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
 
   const onSafeMint = async () => {
-    setLoading(true);
-    const idRamdom = Math.floor(Math.random() * 151) + 1;
+    try {
+      setLoading(true);
 
-    const response = await axios.get(`${BACKEND}/getPokemon`, {
-      params: { idRamdom },
-    });
-    const data = response.data;
+      const contract = new ethers.Contract(
+        pokemonsNFTsContract.address,
+        pokemonsNFTsContract.abi,
+        user.signer
+      );
+      contract.on("CreatePokemon", (requestId, tokenId, id, uri) => {
+        const uriSplited = uri.split("data:application/json;base64,");
+        const base64 = uriSplited[1];
 
-    const types = data.attributes
-      .map((attribute) => attribute.value)
-      .join(", ");
+        const decodeBase64 = Buffer.from(base64, "base64").toString("utf8");
+        const uriJson = JSON.parse(decodeBase64);
 
-    setNfts([...nfts, { ...data, types }]);
-    setLoading(false);
+        const types = uriJson.attributes
+          .map((attribute) => attribute.value)
+          .join(", ");
+
+        setNfts([...nfts, { ...uriJson, types }]);
+        setLoading(false);
+      });
+
+      await contract.safeMint({ gasLimit: 250000 });
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
   };
 
   React.useEffect(() => {
@@ -41,12 +56,12 @@ function App() {
       window.ethereum.on("chainChanged", () => {
         currentNetwork().then((response) => {
           if (response !== 80001) {
-            setUser("Connect wallet");
+            setUser({ address: "Connect wallet", provider: {}, signer: {} });
           }
         });
       });
       window.ethereum.on("accountsChanged", () => {
-        setUser("Connect wallet");
+        setUser({ address: "Connect wallet", provider: {}, signer: {} });
       });
     }
   }, []);
@@ -56,7 +71,7 @@ function App() {
       <nav>
         <Wallet user={user} setUser={setUser} setNfts={setNfts} />
       </nav>
-      {user !== "Connect wallet" && (
+      {user.address !== "Connect wallet" && (
         <div className="app">
           <p className="app__title">{`Your news NFTs - AnyAPIs 💥`}</p>
           <button className="app__get" onClick={onSafeMint}>
