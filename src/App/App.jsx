@@ -5,6 +5,7 @@ import Meta from "antd/es/card/Meta";
 import { Wallet } from "./components/Wallet";
 import axios from "axios";
 import { Spinner } from "./components/shared/Spinner";
+import { ethers } from "ethers";
 const BACKEND = "https://chainlink-workshop-node.onrender.com";
 
 function App() {
@@ -19,11 +20,36 @@ function App() {
     const response = await axios.get(`${BACKEND}/getPokemon`, {
       params: { idRamdom },
     });
-    const responseJSON = response.data;
+    const data = response.data;
 
-    setNfts([...nfts, responseJSON]);
+    const types = data.attributes
+      .map((attribute) => attribute.value)
+      .join(", ");
+
+    setNfts([...nfts, { ...data, types }]);
     setLoading(false);
   };
+
+  React.useEffect(() => {
+    const currentNetwork = async () => {
+      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+      const web3Signer = web3Provider.getSigner();
+      const chainId = await web3Signer.getChainId();
+      return chainId;
+    };
+    if (window.ethereum) {
+      window.ethereum.on("chainChanged", () => {
+        currentNetwork().then((response) => {
+          if (response !== 80001) {
+            setUser("Connect wallet");
+          }
+        });
+      });
+      window.ethereum.on("accountsChanged", () => {
+        setUser("Connect wallet");
+      });
+    }
+  }, []);
 
   return (
     <React.Fragment>
