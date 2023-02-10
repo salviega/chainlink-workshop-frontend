@@ -6,6 +6,10 @@ Chainlink workshop: conectado datos Off-Chain a la Blockchain
 
 Repository url: https://github.com/salviega/chainlink-workshop-node
 
+### Chainlink workshop - AnyAPIs:
+
+https://github.com/LuisFelipe09/chainlink-goerli-pokemon
+
 ## Quick start 🏄
 
 Prerequisites: [Node (v16 LTS)](https://nodejs.org/en/download/) and [Git](https://git-scm.com/downloads)

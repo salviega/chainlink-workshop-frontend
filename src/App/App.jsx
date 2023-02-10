@@ -57,11 +57,13 @@ function App() {
         currentNetwork().then((response) => {
           if (response !== 80001) {
             setUser({ address: "Connect wallet", provider: {}, signer: {} });
+            setNfts([]);
           }
         });
       });
       window.ethereum.on("accountsChanged", () => {
         setUser({ address: "Connect wallet", provider: {}, signer: {} });
+        setNfts([]);
       });
     }
   }, []);
